@@ -8,7 +8,7 @@ This chapter will show you how to use visualisation and transformation to explor
 
 1. Search for answers by visualising, transforming, and modelling your data.
 
-1. Use what you learn to refine your questions and or generate new questions.
+1. Use what you learn to refine your questions and/or generate new questions.
 
 EDA is not a formal process with a strict set of rules. More than anything, EDA is a state of mind. During the initial phases of EDA you should feel free to investigate every idea that occurs to you. Some of these ideas will pan out, and some will be dead ends. As your exploration continues, you will hone in on a few particularly productive areas that you'll eventually write up and communicate to others.
 
@@ -19,8 +19,7 @@ EDA is an important part of any data analysis, even if the questions are handed 
 In this chapter we'll combine what you've learned about dplyr and ggplot2 to interactively ask questions, answer them with data, and then ask new questions.
 
 ```{r setup, message = FALSE}
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 ```
 
 ## Questions
@@ -34,13 +33,13 @@ library(dplyr)
 
 Your goal during EDA is to develop an understanding of your data. The easiest way to do this is to use questions as tools to guide your investigation. When you ask a question, the question focuses your attention on a specific part of your dataset and helps you decide which graphs, models, or transformations to make.
 
-EDA is fundamentally a creative process. And like most creative processes, the key to asking _quality_ questions is to generate a large _quantity_ of questions. It is difficult to ask revealing questions at the start of your analysis because you do not know what insights are contained in your dataset. On the other hand, each new question that you ask will expose you to a new aspect of your data and increase your chance of making a discovery. You can quickly drill down into the most interesting parts of your data---and develop a set of thought provoking questions---if you follow up each question with a new question based on what you find.
+EDA is fundamentally a creative process. And like most creative processes, the key to asking _quality_ questions is to generate a large _quantity_ of questions. It is difficult to ask revealing questions at the start of your analysis because you do not know what insights are contained in your dataset. On the other hand, each new question that you ask will expose you to a new aspect of your data and increase your chance of making a discovery. You can quickly drill down into the most interesting parts of your data---and develop a set of thought-provoking questions---if you follow up each question with a new question based on what you find.
 
 There is no rule about which questions you should ask to guide your research. However, two types of questions will always be useful for making discoveries within your data. You can loosely word these questions as:
 
-1. What type of **variation** occurs **within** my variables?
+1. What type of variation occurs within my variables?
 
-1. What type of **covariation** occurs **between** my variables?
+1. What type of covariation occurs between my variables?
 
 The rest of this chapter will look at these two questions. I'll explain what variation and covariation are, and I'll show you several ways to answer each question. To make the discussion easier, let's define some terms: 
 
@@ -64,21 +63,7 @@ So far, all the data you've seen so far has been tidy. In real-life, most data i
 
 ## Variation
 
-**Variation** is the tendency of the values of a variable to change from measurement to measurement. You can see variation easily in real life; if you measure any continuous variable twice, you will get two different results. This is true even if you measure quantities that are constant, like the speed of light (below). Each of your measurements will include a small amount of error that varies from measurement to measurement.
-
-```{r, variation, echo = FALSE}
-old <- options(digits = 7)
-mat <- as.data.frame(matrix(morley$Speed + 299000, ncol = 10))
-knitr::kable(
-  mat, 
-  col.names = rep("", ncol(mat)), 
-  caption = "The speed of light is a universal constant, but variation due to measurement error obscures its value. In 1879, Albert Michelson measured the speed of light 100 times and observed 30 different values (in km/sec)."
-)
-options(old)
-```
-
-Categorical variables can also vary if you measure across different subjects (e.g. the eye colors of different people), or different times (e.g. the energy levels of an electron at different moments). 
-
+**Variation** is the tendency of the values of a variable to change from measurement to measurement. You can see variation easily in real life; if you measure any continuous variable twice, you will get two different results. This is true even if you measure quantities that are constant, like the speed of light. Each of your measurements will include a small amount of error that varies from measurement to measurement. Categorical variables can also vary if you measure across different subjects (e.g. the eye colors of different people), or different times (e.g. the energy levels of an electron at different moments). 
 Every variable has its own pattern of variation, which can reveal interesting information. The best way to understand that pattern is to visualise the distribution of variable's values.
 
 ### Visualising distributions
@@ -97,7 +82,7 @@ diamonds %>%
   count(cut)
 ```
 
-A variable is **continuous** if can take any of an infinite set of ordered values. Numbers and date-times are two examples of continuous variables. To examine the distribution of a continuous variable, use a histogram:
+A variable is **continuous** if it can take any of an infinite set of ordered values. Numbers and date-times are two examples of continuous variables. To examine the distribution of a continuous variable, use a histogram:
 
 ```{r}
 ggplot(data = diamonds) +
@@ -111,7 +96,7 @@ diamonds %>%
   count(cut_width(carat, 0.5))
 ```
 
-A histogram divides the x axis into equally spaced bins and then uses the height of bar to display the number of observations that fall in each bin. In the graph above, the tallest bar shows that almost 30,000 observations have a `carat` value between 0.25 and 0.75, which are the left and right edges of the bar. 
+A histogram divides the x-axis into equally spaced bins and then uses the height of bar to display the number of observations that fall in each bin. In the graph above, the tallest bar shows that almost 30,000 observations have a `carat` value between 0.25 and 0.75, which are the left and right edges of the bar. 
 
 You can set the width of the intervals in a histogram with the `binwidth` argument, which is measured in the units of the `x` variable. You should always explore a variety of binwidths when working with histograms, as different binwidths can reveal different patterns. For example, here is how the graph above looks when we zoom into just the diamonds with a size of less than three carats and choose a smaller binwidth.
 
@@ -132,7 +117,7 @@ ggplot(data = smaller, mapping = aes(x = carat, colour = cut)) +
 
 There are a few challenges with this type of plot, which we will come back to in [visualising a categorical and a continuous variable](#cat-cont).
 
-Now that you can visualise variation, what should you look for in your plots? And what type of follow-up questions should you ask? I've put together a list below of the most useful types of information that you will find in your graphs, along with some follow up questions for each type of information. The key to asking good follow up questions will be to rely on your **curiosity** (What do you want to learn more about?) as well as your **skepticism** (How could this be misleading?).
+Now that you can visualise variation, what should you look for in your plots? And what type of follow-up questions should you ask? I've put together a list below of the most useful types of information that you will find in your graphs, along with some follow-up questions for each type of information. The key to asking good follow-up questions will be to rely on your curiosity (What do you want to learn more about?) as well as your skepticism (How could this be misleading?).
 
 ### Typical values
 
@@ -198,11 +183,19 @@ ggplot(diamonds) +
 
 This allows us to see that there are three unusual values: 0, ~30, and ~60. We pluck them out with dplyr: 
 
+```{r, include = FALSE}
+old <- options(tibble.print_max = 10, tibble.print_min = 10)
+```
+
 ```{r}
 unusual <- diamonds %>% 
   filter(y < 3 | y > 20) %>% 
   arrange(y)
 unusual
+```
+
+```{r, include = FALSE}
+options(old)
 ```
 
 The `y` variable measures one of the three dimensions of these diamonds, in mm. We know that diamonds can't have a width of 0mm, so these values must be incorrect. We might also suspect that measurements of 32mm and 59mm are implausible: those diamonds are over an inch long, but don't cost hundreds of thousands of dollars!
@@ -244,7 +237,7 @@ If you've encountered unusual values in your dataset, and simply want to move on
     variable you might find that you don't have any data left!
 
 1.  Instead, I recommend replacing the unusual values with missing values.
-    The easiest way to do this is use `mutate()` to replace the variable
+    The easiest way to do this is to use `mutate()` to replace the variable
     with a modified copy. You can use the `ifelse()` function to replace
     unusual values with `NA`:
 
@@ -288,7 +281,7 @@ However this plot isn't great because there are many more non-cancelled flights 
 ### Exercises
 
 1.  What happens to missing values in a histogram?  What happens to missing
-    values in bar chart? Why is there a difference?
+    values in a bar chart? Why is there a difference?
 
 1.  What does `na.rm = TRUE` do in `mean()` and `sum()`?
 
@@ -298,7 +291,7 @@ If variation describes the behavior _within_ a variable, covariation describes t
 
 ### A categorical and continuous variable {#cat-cont}
 
-It's common to want to explore the distribution of a continuous variable broken down by a categorical, as in the previous frequency polygon. The default appearance of `geom_freqpoly()` is not that useful for that sort of comparison because the height is given by the count. That means if one of the groups is much smaller than the others, it's hard to see the differences in shape. For example, let's explore how the price of a diamond varies with its quality:
+It's common to want to explore the distribution of a continuous variable broken down by a categorical variable, as in the previous frequency polygon. The default appearance of `geom_freqpoly()` is not that useful for that sort of comparison because the height is given by the count. That means if one of the groups is much smaller than the others, it's hard to see the differences in shape. For example, let's explore how the price of a diamond varies with its quality:
 
 ```{r}
 ggplot(data = diamonds, mapping = aes(x = price)) + 
@@ -332,7 +325,7 @@ Another alternative to display the distribution of a continuous variable broken 
 
 * Visual points that display observations that fall more than 1.5 times the 
   IQR from either edge of the box. These outlying points are unusual
-  so are plotted individually
+  so are plotted individually.
 
 * A line (or whisker) that extends from each end of the box and goes to the   
   farthest non-outlier point in the distribution.
@@ -453,16 +446,17 @@ ggplot(data = diamonds) +
   geom_point(mapping = aes(x = carat, y = price))
 ```
 
-Scatterplots become less useful as the size of your dataset grows, because points begin to overplot, and pile up into areas of uniform black (as above). This problem is similar to showing the distribution of price by color using a scatterplot:
+Scatterplots become less useful as the size of your dataset grows, because points begin to overplot, and pile up into areas of uniform black (as above).
+You've already seen one way to fix the problem: using the `alpha` aesthetic to add transparency.
 
 ```{r, dev = "png"}
 ggplot(data = diamonds) + 
-  geom_point(mapping = aes(x = price, y = cut))
+  geom_point(mapping = aes(x = carat, y = price), alpha = 1 / 100)
 ```
 
-And we can fix it in the same way: by using binning. Previously you used `geom_histogram()` and `geom_freqpoly()` to bin in one dimension. Now you'll learn how to use `geom_bin2d()` and `geom_hex()` to bin in two dimensions.
+But using transparency can be challenging for very large datasets. Another solution is to use bin. Previously you used `geom_histogram()` and `geom_freqpoly()` to bin in one dimension. Now you'll learn how to use `geom_bin2d()` and `geom_hex()` to bin in two dimensions.
 
-`geom_bin2d()` and `geom_hex()` divide the coordinate plane into two dimensional bins and then use a fill color to display how many points fall into each bin. `geom_bin2d()` creates rectangular bins. `geom_hex()` creates hexagonal bins. You will need to install the hexbin package to use `geom_hex()`.
+`geom_bin2d()` and `geom_hex()` divide the coordinate plane into 2d bins and then use a fill color to display how many points fall into each bin. `geom_bin2d()` creates rectangular bins. `geom_hex()` creates hexagonal bins. You will need to install the hexbin package to use `geom_hex()`.
 
 ```{r, fig.asp = 1, out.width = "50%", fig.align = "default"}
 ggplot(data = smaller) +
@@ -540,7 +534,7 @@ ggplot(data = faithful) +
 
 Patterns provide one of the most useful tools for data scientists because they reveal covariation. If you think of variation as a phenomenon that creates uncertainty, covariation is a phenomenon that reduces it. If two variables covary, you can use the values of one variable to make better predictions about the values of the second. If the covariation is due to a causal relationship (a special case), then you can use the value of one variable to control the value of the second.
 
-Models are a tool for extracting patterns out of data. For example, consider the diamonds data. It's hard to understand the relationship between cut and price, because cut and carat, and carat and price are tightly related. It's possible to use a model to remove the very strong relationship between price and carat so we we can explore the subtleties that remain:
+Models are a tool for extracting patterns out of data. For example, consider the diamonds data. It's hard to understand the relationship between cut and price, because cut and carat, and carat and price are tightly related. It's possible to use a model to remove the very strong relationship between price and carat so we can explore the subtleties that remain. The following code fits a model that predicts `price` from `carat` and then computes the residuals (the difference between the predicted value and the actual value). The residuals give us a view of the price of the diamond, once the effect of carat has been removed. 
 
 ```{r, dev = "png"}
 library(modelr)
@@ -562,7 +556,7 @@ ggplot(data = diamonds2) +
   geom_boxplot(mapping = aes(x = cut, y = resid))
 ```
 
-We're saving modelling for later because understanding what models are and how they work is easiest once you have tools of data wrangling and programming in hand.
+You'll learn how models, and the modelr package, work in the final part of the book, [model](#model-intro). We're saving modelling for later because understanding what models are and how they work is easiest once you have tools of data wrangling and programming in hand.
 
 ## ggplot2 calls
 
@@ -593,8 +587,8 @@ diamonds %>%
 
 ## Learning more
 
-If you want learn more about the mechanics ggplot2, I'd highly recommend grabbing a copy of the ggplot2 book: <https://amzn.com/331924275X>. It's been recently updated, so it includes dplyr and tidyr code, and has much more space to explore all the facets of visualisation. Unfortunately the book isn't generally available for free, but if you have a connection to a university you can probably get an electronic version for free through SpringerLink.
+If you want learn more about the mechanics of ggplot2, I'd highly recommend grabbing a copy of the ggplot2 book: <https://amzn.com/331924275X>. It's been recently updated, so it includes dplyr and tidyr code, and has much more space to explore all the facets of visualisation. Unfortunately the book isn't generally available for free, but if you have a connection to a university you can probably get an electronic version for free through SpringerLink.
 
 Another useful resource is the [_R Graphics Cookbook_](https://amzn.com/1449316956) by Winston Chang. Much of the contents are available online at <http://www.cookbook-r.com/Graphs/>.
 
-I also recommend [_Graphical Data Analysis with R_](https://amzn.com/1498715230), by Antony Unwin. This is a book length treatment similar to the material covered in this chapter, but has the space to go into much greater depth. 
+I also recommend [_Graphical Data Analysis with R_](https://amzn.com/1498715230), by Antony Unwin. This is a book-length treatment similar to the material covered in this chapter, but has the space to go into much greater depth. 

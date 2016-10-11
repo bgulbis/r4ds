@@ -2,14 +2,14 @@
 
 ## Introduction
 
-Working with data provided by R packages is a great way to learn the tools of data science, but at some point you want to stop learning and start working with your own data. In this chapter, you'll learn how to read plain-text rectangular files into R. Here, we'll only scratch surface of data import, but many of the principles will translate to the other forms of data. We'll finish with a few pointers to packages that are useful for other types of data.
+Working with data provided by R packages is a great way to learn the tools of data science, but at some point you want to stop learning and start working with your own data. In this chapter, you'll learn how to read plain-text rectangular files into R. Here, we'll only scratch the surface of data import, but many of the principles will translate to other forms of data. We'll finish with a few pointers to packages that are useful for other types of data.
 
 ### Prerequisites
 
-In this chapter, you'll learn how to load flat files in R with the __readr__ package:
+In this chapter, you'll learn how to load flat files in R with the __readr__ package, which is part of the core tidyverse.
 
-```{r setup}
-library(readr)
+```{r setup, message = FALSE}
+library(tidyverse)
 ```
 
 ## Getting started
@@ -89,7 +89,7 @@ Another option that commonly needs tweaking is `na`: this specifies the value (o
 read_csv("a,b,c\n1,2,.", na = ".")
 ```
 
-This is all you need to know to read ~75% of csv files that you'll encounter in practice. You can also easily adapt what you've learned to read tab separated files with `read_tsv()` and fixed width files with `read_fwf()`. To read in more challenging files, you'll need to learn more about how readr parses each column, turning them in to R vectors.
+This is all you need to know to read ~75% of CSV files that you'll encounter in practice. You can also easily adapt what you've learned to read tab separated files with `read_tsv()` and fixed width files with `read_fwf()`. To read in more challenging files, you'll need to learn more about how readr parses each column, turning them into R vectors.
 
 ### Compared to base R
 
@@ -118,7 +118,7 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     
 1.  What are the most important arguments to `read_fwf()`?
    
-1.  Sometimes strings in a csv file contain commas. To prevent them from
+1.  Sometimes strings in a CSV file contain commas. To prevent them from
     causing problems they need to be surrounded by a quoting character, like
     `"` or `'`. By convention, `read_csv()` assumes that the quoting
     character will be `"`, and if you want to change it you'll need to
@@ -129,7 +129,7 @@ If you've used R before, you might wonder why we're not using `read.csv()`. Ther
     "x,y\n1,'a,b'"
     ```
     
-1.  Identify what is wrong with each of the following inline csv files. 
+1.  Identify what is wrong with each of the following inline CSV files. 
     What happens when you run the code?
     
     ```{r, eval = FALSE}
@@ -190,6 +190,9 @@ Using parsers is mostly a matter of understanding what's available and how they 
 1.  `parse_character()` seems so simple that it shouldn't be necessary. But
     one complication makes it quite important: character encodings.
 
+1.  `parse_factor()` create factors, the data structure that R uses to represent
+    categorical variables with fixed and known values.
+
 1.  `parse_datetime()`, `parse_date()`, and `parse_time()` allow you to
     parse various date & time specifications. These are the most complicated
     because there are so many different ways of writing dates.
@@ -240,7 +243,7 @@ parse_number("123.456.789", locale = locale(grouping_mark = "."))
 parse_number("123'456'789", locale = locale(grouping_mark = "'"))
 ```
 
-### Character
+### Strings {#readr-strings}
 
 It seems like `parse_character()` should be really simple --- it could just return its input. Unfortunately life isn't so simple, as there are multiple ways to represent the same string. To understand what's going on, we need to dive into the details of how computers represent strings. In R, we can get at the underlying representation of a string using `charToRaw()`:
 
@@ -279,6 +282,17 @@ guess_encoding(charToRaw(x2))
 The first argument to `guess_encoding()` can either be a path to a file, or, as in this case, a raw vector (useful if the strings are already in R).
 
 Encodings are a rich and complex topic, and I've only scratched the surface here. If you'd like to learn more I'd recommend reading the detailed explanation at <http://kunststube.net/encoding/>.
+
+### Factors {#readr-factors}
+
+R uses factors to represent categorical variables that have a known set of possible values. Give `parse_factor()` a vector of known `levels` to generate a warning whenever an unexpected value is present:
+
+```{r}
+fruit <- c("apple", "banana")
+parse_factor(c("apple", "banana", "bananana"), levels = fruit)
+```
+
+But if you have many problematic entries, it's often easier to leave as character vectors and then use the tools you'll learn about in [strings] and [factors] to clean them up.
 
 ### Dates, date-times, and times {#readr-datetimes}
 
@@ -445,7 +459,7 @@ These defaults don't always work for larger files. There are two basic problems:
     vector, whereas you probably want to parse it as something more
     specific.
 
-readr contains a challenging csv that illustrates both of these problems:
+readr contains a challenging CSV that illustrates both of these problems:
 
 ```{r}
 challenge <- read_csv(readr_example("challenge.csv"))
@@ -534,9 +548,11 @@ There are a few other general strategies to help you parse files:
     frame.
 
     ```{r}
-    df <- tibble::tibble(
-       x = c("1", "2", "3"), 
-       y = c("1.21", "2.32", "4.56")
+    df <- tribble(
+      ~x,  ~y,
+      "1", "1.21",
+      "2", "2.32",
+      "3", "4.56"
     )
     df
     
@@ -579,7 +595,7 @@ write_csv(challenge, "challenge-2.csv")
 read_csv("challenge-2.csv")
 ```
 
-This makes csvs a little unreliable for caching interim results---you need to recreate the column specification every time you load in. There are two alternatives:
+This makes CSVs a little unreliable for caching interim results---you need to recreate the column specification every time you load in. There are two alternatives:
 
 1.  `write_rds()` and `read_rds()` are uniform wrappers around the base 
     functions `readRDS()` and `saveRDS()`. These store data in R's custom 

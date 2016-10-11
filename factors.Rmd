@@ -8,47 +8,81 @@ Historically, factors were much easier to work with than characters. As a result
 
 For more historical context on factors, I recommend [_stringsAsFactors: An unauthorized biography_](http://simplystatistics.org/2015/07/24/stringsasfactors-an-unauthorized-biography/) by Roger Peng, and [_stringsAsFactors = \<sigh\>_](http://notstatschat.tumblr.com/post/124987394001/stringsasfactors-sigh) by Thomas Lumley.
 
-
 ### Prerequisites
 
-To work with factors, we'll use the __forcats__ package, which provides tools for dealing with **cat**egorical variables (and it's an anagram of factors!). It provides a wide range of helpers for working with factors. We'll also need dplyr for some data manipulation, and ggplot2 for visualisation.
+To work with factors, we'll use the __forcats__ package, which provides tools for dealing with **cat**egorical variables (and it's an anagram of factors!). It provides a wide range of helpers for working with factors. forcats is not part of the core tidyverse, so we need to load it explicitly.
 
 ```{r setup, message = FALSE}
-# devtools::install_github("hadley/forcats")
+library(tidyverse)
 library(forcats)
-
-library(ggplot2)
-library(dplyr)
 ```
 
 ## Creating factors
 
-Typically you'll convert a factor from a character vector, using `factor()`. Apart from the character input, the most important argument is the list of valid __levels__:
+Imagine that you have a variable that records month:
 
 ```{r}
-x <- c("pear", "apple", "banana", "apple", "pear", "apple")
-factor(x, levels = c("apple", "banana", "pear"))
+x1 <- c("Dec", "Apr", "Jan", "Mar")
 ```
 
-Any values not in the list of levels will be silently converted to `NA`:
+Using a string to record this variable has two problems:
+
+1.  There are only twelve possible months, and there's nothing saving you
+    from typos:
+     
+    ```{r}
+    x2 <- c("Dec", "Apr", "Jam", "Mar")
+    ```
+    
+1.  It doesn't sort in a useful way:
+
+    ```{r}
+    sort(x1)
+    ```
+
+You can fix both of these problems with a factor. To create a factor you must start by creating a list of the valid __levels__:
 
 ```{r}
-factor(x, levels = c("apple", "banana"))
+month_levels <- c(
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+)
+```
+
+Now you can create a factor:
+
+```{r}
+y1 <- factor(x1, levels = month_levels)
+y1
+sort(y1)
+```
+
+And any values not in the set will be silently converted to NA:
+
+```{r}
+y2 <- factor(x2, levels = month_levels)
+y2
+```
+
+If you want a want, you can use `readr::parse_factor()`:
+
+```{r}
+y2 <- parse_factor(x2, levels = month_levels)
 ```
 
 If you omit the levels, they'll be taken from the data in alphabetical order:
 
 ```{r}
-factor(x)
+factor(x1)
 ```
 
 Sometimes you'd prefer that the order of the levels match the order of the first appearance in the data. You can do that when creating the factor by setting levels to `unique(x)`, or after the fact, with `fct_inorder()`:
 
 ```{r}
-f1 <- factor(x, levels = unique(x))
+f1 <- factor(x1, levels = unique(x1))
 f1
 
-f2 <- x %>% factor() %>% fct_inorder()
+f2 <- x1 %>% factor() %>% fct_inorder()
 f2
 ```
 
@@ -99,10 +133,10 @@ When working with factors, the two most common operations are changing the order
 1.  Explore the distribution of `rincome` (reported income). What makes the
     default bar chart hard to understand? How could you improve the plot?
 
-1.  What is the most common `religion` in this survey? What's the most
+1.  What is the most common `relig` in this survey? What's the most
     common `partyid`?
 
-1.  Which `religion` does `denom` (denomination) apply to? How can you find
+1.  Which `relig` does `denom` (denomination) apply to? How can you find
     out with a table? How can you find out with a visualisation?
 
 ## Modifying factor order
@@ -205,10 +239,6 @@ gss_cat %>%
 1.  Why did moving "Not applicable" to the front of the levels move it to the
     bottom of the plot?
 
-1.  Recreate the display of marital status by age, using `geom_area()` instead
-    of `geom_line()`. What do you need to change to the plot? How might you
-    tweak the levels?
-
 ## Modifying factor levels
 
 More powerful than changing the orders of the levels is changing their values. This allows you to clarify labels for publication, and collapse levels for high-level displays. The most general and powerful tool is `fct_recode()`. It allows you to recode, or change, the value of each level. For example, take the `gss_cat$partyid`:
@@ -290,8 +320,5 @@ gss_cat %>%
 
 1.  How have the proportions of people identifying as Democrat, Republican, and
     Independent changed over time?
-
-1.  Display the joint distribution of the  `relig` and `denom` variables in
-    a single plot.
 
 1.  How could you collapse `rincome` into a small set of categories?

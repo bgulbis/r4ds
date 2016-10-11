@@ -10,11 +10,10 @@ This chapter focuses on the tools you need to create good graphics. I assume tha
 
 ### Prerequisites
 
-In this chapter, we'll focus once again on ggplot2. We'll also use a little dplyr for data manipulation, and a few ggplot2 extension packages, including __ggrepel__ and __viridis__. Rather than loading those extensions here, we'll refer to their functions explicitly, using the `::` notation. This will help make it clear which functions are built into ggplot2, and which come from other packages.
+In this chapter, we'll focus once again on ggplot2. We'll also use a little dplyr for data manipulation, and a few ggplot2 extension packages, including __ggrepel__ and __viridis__. Rather than loading those extensions here, we'll refer to their functions explicitly, using the `::` notation. This will help make it clear which functions are built into ggplot2, and which come from other packages. Don't forget you'll need to install those packages with `install.packages()` if you don't already have them.
 
 ```{r, message = FALSE}
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 ```
 
 ## Label
@@ -124,7 +123,7 @@ ggplot(mpg, aes(displ, hwy)) +
 
 Note another handy technique used here: I added a second layer of large, hollow points to highlight the points that I've labelled.
 
-You can sometimes use the same idea to replace the legend with labels placed directly on the plot. It's not wonderful for this plot, but it isn't too bad. (`theme(legend.position = "none"`) turns the legend off --- we'll talk about it more shortly).
+You can sometimes use the same idea to replace the legend with labels placed directly on the plot. It's not wonderful for this plot, but it isn't too bad. (`theme(legend.position = "none"`) turns the legend off --- we'll talk about it more shortly.)
 
 ```{r}
 class_avg <- mpg %>%
@@ -174,7 +173,7 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_text(aes(label = label), data = label, vjust = "top", hjust = "right")
 ```
 
-In these examples, I manually broke the label up into lines using `"\n"`. Another approach is to use `stringr::str_wrap()` to automatically add linebreaks, given the number of characters you want per line:
+In these examples, I manually broke the label up into lines using `"\n"`. Another approach is to use `stringr::str_wrap()` to automatically add line breaks, given the number of characters you want per line:
 
 ```{r}
 "Increasing engine size is related to decreasing fuel economy." %>%
@@ -323,7 +322,7 @@ base + theme(legend.position = "bottom")
 base + theme(legend.position = "right") # the default
 ```
 
-You can also use `legend.postion = "none"` to suppress the display of the legend altogether.
+You can also use `legend.position = "none"` to suppress the display of the legend altogether.
 
 To control the display of individual legends, use `guides()` along with `guide_legend()` or `guide_colourbar()`. The following example shows two important settings: controlling the number of rows the legend uses with `nrow`, and overriding one of the aesthetics to make the points bigger. This is particularly useful if you have used a low `alpha` to display many points on a plot.
 
@@ -337,9 +336,28 @@ ggplot(mpg, aes(displ, hwy)) +
 
 ### Replacing a scale
 
-Instead of just tweaking the details a little, you can instead replace the scale altogether. We'll focus on colour scales because there are many options, and they're the scales you're mostly likely to want to change. The same principles apply to the other aesthetics. All colour scales have two variants: `scale_colour_x()` and `scale_fill_x()` for the `colour` and `fill` aesthetics respectively (the colour scales are available in both UK and US spellings).
+Instead of just tweaking the details a little, you can instead replace the scale altogether. There are two types of scales you're mostly likely to want to switch out: continuous position scales and colour scales. Fortunately, the same principles apply to all the other aesthetics, so once you've mastered position and colour, you'll be able to quickly pick up other scale replacements.
 
-The default categorical scale picks colours that are evenly spaced around the colour wheel. Useful alternatives are the ColorBrewer scales which have been hand tuned to work better for people with common types of colour blindness. The two plots below look similar, but there is enough difference in the shades of red and green that the dots on the right can be distinguished even by people with red-green colour blindness.
+It's very useful to plot transformations of your variable. For example, as we've seen in [diamond prices][diamond-prices] it's easier to see the precise relationship between `carat` and `price` if we log transform them:
+
+```{r, fig.align = "default", out.width = "50%"}
+ggplot(diamonds, aes(carat, price)) +
+  geom_bin2d()
+
+ggplot(diamonds, aes(log10(carat), log10(price))) +
+  geom_bin2d()
+```
+
+However, the disadvantage of this transformation is that the axes are now labelled with the transformed values, making it hard to interpret the plot. Instead of doing the transformation in the aesthetic mapping, we can instead do it with the scale. This is visually identical, except the axes are labelled on the original data scale.
+
+```{r}
+ggplot(diamonds, aes(carat, price)) +
+  geom_bin2d() + 
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+Another scale that is frequently customised is colour.The default categorical scale picks colours that are evenly spaced around the colour wheel. Useful alternatives are the ColorBrewer scales which have been hand tuned to work better for people with common types of colour blindness. The two plots below look similar, but there is enough difference in the shades of red and green that the dots on the right can be distinguished even by people with red-green colour blindness.
 
 ```{r, fig.align = "default", out.width = "50%"}
 ggplot(mpg, aes(displ, hwy)) +
@@ -373,7 +391,7 @@ presidential %>%
   ggplot(aes(start, id, colour = party)) +
     geom_point() +
     geom_segment(aes(xend = end, yend = id)) +
-    scale_colour_manual(values = c(Republican = "Red", Democratic = "Blue"))
+    scale_colour_manual(values = c(Republican = "red", Democratic = "blue"))
 ```
 
 For continuous colour, you can use the built-in `scale_colour_gradient()` or `scale_fill_gradient()`. If you have a diverging scale, you can use `scale_colour_gradient2()`. That allows you to give, for example, positive and negative values different colours. That's sometimes also useful if you want to distinguish points above or below the mean.
@@ -394,6 +412,8 @@ ggplot(df, aes(x, y)) +
   viridis::scale_fill_viridis() +
   coord_fixed()
 ```
+
+Note that all colour scales come in two variety: `scale_colour_x()` and `scale_fill_x()` for the `colour` and `fill` aesthetics respectively (the colour scales are available in both UK and US spellings).
 
 ### Exercises
 
@@ -443,8 +463,7 @@ mpg %>%
   filter(displ >= 5, displ <= 7, hwy >= 10, hwy <= 30) %>%
   ggplot(aes(displ, hwy)) +
   geom_point(aes(color = class)) +
-  geom_smooth() +
-  coord_cartesian(xlim = c(5, 7), ylim = c(10, 30))
+  geom_smooth()
 ```
 
 You can also set the `limits` on individual scales. Reducing the limits is basically equivalent to subsetting the data. It is generally more useful if you want _expand_ the limits, for example, to match scales across different plots. For example, if we extract two classes of cars and plot them separately, it's difficult to compare the plots because all three scales (the x-axis, the y-axis, and the colour aesthetic) have different ranges.
@@ -532,7 +551,7 @@ I only ever use three of the five options:
 
 * I control the output size with `out.width` and set it to a percentage
   of the line width). I default to `out.width = "70%"`
-  and `fig.align = 'center'`. That give plots room to breathe, without taking
+  and `fig.align = "center"`. That give plots room to breathe, without taking
   up too much space.
 
 * To put multiple plots in a single row I set the `out.width` to
@@ -556,7 +575,7 @@ plot
 plot
 ```
 
-If you want to make sure the font size is consistent across all your figures, whenever you set `out.width`, you'll also need to adjust `fig.width` to maintain the same ratio with your default `out.width`. For example, if your default `fig.width` is 6 and `out.width` is 0.7, when you set `out.width = "50%"` you'll need to set `fig.width` to 4.2 (6 * 0.5 / 0.7).
+If you want to make sure the font size is consistent across all your figures, whenever you set `out.width`, you'll also need to adjust `fig.width` to maintain the same ratio with your default `out.width`. For example, if your default `fig.width` is 6 and `out.width` is 0.7, when you set `out.width = "50%"` you'll need to set `fig.width` to 4.3 (6 * 0.5 / 0.7).
 
 ### Other important options
 
@@ -570,6 +589,6 @@ It's a good idea to name code chunks that produce figures, even if you don't rou
 
 ## Learning more
 
-The absolute best place to learn more is the ggplot2 book: [_ggplot2: Elegant graphics for data analysis_](https://amzn.com/331924275X). It goes into much more depth about the underlying theory, and has many more examples of how to combine the individual pieces to solve practical problems. Unfortunately the book is not available online for free, although you can find the source code at <https://github.com/hadley/ggplot2-book>.
+The absolute best place to learn more is the ggplot2 book: [_ggplot2: Elegant graphics for data analysis_](https://amzn.com/331924275X). It goes into much more depth about the underlying theory, and has many more examples of how to combine the individual pieces to solve practical problems. Unfortunately, the book is not available online for free, although you can find the source code at <https://github.com/hadley/ggplot2-book>.
 
 Another great resource is the ggplot2 extensions guide <http://www.ggplot2-exts.org/>. This site lists many of the packages that extend ggplot2 with new geoms and scales. It's a great place to start if you're trying to do something that seems hard with ggplot2.

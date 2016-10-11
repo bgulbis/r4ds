@@ -2,21 +2,21 @@
 
 ## Introduction
 
-Throughout this book we work with "tibbles" instead of R's traditional data.frame. Tibbles _are_ data frames, but they tweak some older behaviours to make life a littler easier. R is an old language, and some things that were useful 10 or 20 years ago now get in your way. It's difficult to change base R without breaking existing code, so most innovation occurs in packages. Here we will describe the __tibble__ package, which provides opinionated data frames that make working in the tidyverse a little easier. 
+Throughout this book we work with "tibbles" instead of R's traditional `data.frame`. Tibbles _are_ data frames, but they tweak some older behaviours to make life a little easier. R is an old language, and some things that were useful 10 or 20 years ago now get in your way. It's difficult to change base R without breaking existing code, so most innovation occurs in packages. Here we will describe the __tibble__ package, which provides opinionated data frames that make working in the tidyverse a little easier. In most places, I'll use the term tibble and data frame interchangeably; when I want to draw particular attention to R's build-in data frame, I'll call them `data.frame`s. 
 
 If this chapter leaves you wanting to learn more about tibbles, you might enjoy `vignette("tibble")`.
 
 ### Prerequisites
 
-In this chapter we'll explore the __tibble__ package. Most chapters don't load the tibble package explicitly, because we're just using tibbles, not creating them. Here we're going to create them by hand (not from an existing data source), so we'll need to load it explicitly.
+In this chapter we'll explore the __tibble__ package, part of the core tidyverse.
 
-```{r setup}
-library(tibble)
+```{r setup, message = FALSE}
+library(tidyverse)
 ```
 
 ## Creating tibbles {#tibbles}
 
-Almost all of the functions that you'll use in this book produce tibbles as tibbles are one of the unifying features of the tidyverse. Most other R packages use regular data frames, so you might want to coerce a data frame to a tibble. You can do that with `as_tibble()`:
+Almost all of the functions that you'll use in this book produce tibbles, as tibbles are one of the unifying features of the tidyverse. Most other R packages use regular data frames, so you might want to coerce a data frame to a tibble. You can do that with `as_tibble()`:
 
 ```{r}
 as_tibble(iris)
@@ -60,9 +60,9 @@ tribble(
 
 I often add a comment (the line starting with `#`), to make it really clear where the header is.
 
-## Tibbles vs. data frames
+## Tibbles vs. data.frame
 
-There are two main differences in the usage of a data frame vs a tibble: printing and subsetting.
+There are two main differences in the usage of a tibble vs. a classic `data.frame`: printing and subsetting.
 
 ### Printing
 
@@ -70,8 +70,8 @@ Tibbles have a refined print method that shows only the first 10 rows, and all t
 
 ```{r}
 tibble(
-  a = lubridate::now() + runif(1e3) * 60,
-  b = lubridate::today() + runif(1e3),
+  a = lubridate::now() + runif(1e3) * 86400,
+  b = lubridate::today() + runif(1e3) * 30,
   c = 1:1e3,
   d = runif(1e3),
   e = sample(letters, 1e3, replace = TRUE)
@@ -90,7 +90,7 @@ nycflights13::flights %>%
 You can also control the default print behaviour by setting options:
 
 * `options(tibble.print_max = n, tibble.print_min = m)`: if more than `m`
-  rows, print only `n` rows. Use `options(dplyr.print_max = Inf)` to always
+  rows, print only `n` rows. Use `options(dplyr.print_min = Inf)` to always
   show all rows.
 
 * Use `options(tibble.width = Inf)` to always print all columns, regardless
@@ -125,18 +125,16 @@ df[[1]]
 
 To use these in a pipe, you'll need to use the special placeholder `.`:
 
-```{r, include = FALSE}
-library(magrittr)
-```
-
 ```{r}
 df %>% .$x
 df %>% .[["x"]]
 ```
 
+Compared to a `data.frame`, tibbles are more strict: they never do partial matching, and they will generate a warning if the column you are trying to access does not exist.
+
 ## Interacting with older code
 
-Some older functions don't work with tibbles. If you encounter one of these functions, use `as.data.frame()` to turn a tibble back to a data frame:
+Some older functions don't work with tibbles. If you encounter one of these functions, use `as.data.frame()` to turn a tibble back to a `data.frame`:
 
 ```{r}
 class(as.data.frame(tb))
@@ -146,18 +144,32 @@ The main reason that some older functions don't work with tibble is the `[` func
 
 ## Exercises
 
-1.  How can you tell if an object is a tibble? (Hint: trying print `mtcars`,
+1.  How can you tell if an object is a tibble? (Hint: try printing `mtcars`,
     which is a regular data frame). 
 
-1.  Practice referring to non-syntactic names by:
+1.  Compare and contrast the following operations on a `data.frame` and 
+    equivalent tibble. What is different? Why might the default data frame
+    behaviours cause you frustration?
+    
+    ```{r, eval = FALSE}
+    df <- data.frame(abc = 1, xyz = "a")
+    df$x
+    df[, "xyz"]
+    df[, c("abc", "xyz")]
+    ```
+
+1.  If you have the name of a variable stored in an object, e.g. `var <- "mpg"`,
+    how can you extract the reference variable from a tibble?
+
+1.  Practice referring to non-syntactic names in the following data frame by:
+
+    1.  Extracting the variable called `1`.
 
     1.  Plotting a scatterplot of `1` vs `2`.
 
     1.  Creating a new column called `3` which is `2` divided by `1`.
         
     1.  Renaming the columns to `one`, `two` and `three`. 
-    
-    1.  Extracting the variable called `1`.
     
     ```{r}
     annoying <- tibble(

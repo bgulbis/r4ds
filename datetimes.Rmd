@@ -14,17 +14,13 @@ Dates and times are hard because they have to reconcile two physical phenomena (
 
 ### Prerequisites
 
-This chapter will focus on the __lubridate__ package, which makes it easier to work with dates and times in R. We will use nycflights13 for practice data, and some packages for EDA.
+This chapter will focus on the __lubridate__ package, which makes it easier to work with dates and times in R. lubridate is not part of core tidyverse because you only need it when you're working with dates/times. We will also need nycflights13 for practice data.
 
 ```{r setup, message = FALSE}
+library(tidyverse)
+
 library(lubridate)
-
-# Data
 library(nycflights13)
-
-# EDA
-library(dplyr)
-library(ggplot2)
 ```
 
 ## Creating date/times
@@ -61,7 +57,7 @@ They work as follows.
 
 ### From strings
 
-Date/time data often comes as strings. You've seen one approach to parsing strings into date-times in [date-times](#readr-datetimes). Another approach is to use the helpers provided by lubridate. They automatically work out the format once you specify the order of the component. To use them, identify the order in which year, month, and day appears in your dates, then arrange "y", "m", and "d" in the same order. That gives you the name of the lubridate function that will parse your date. For example:
+Date/time data often comes as strings. You've seen one approach to parsing strings into date-times in [date-times](#readr-datetimes). Another approach is to use the helpers provided by lubridate. They automatically work out the format once you specify the order of the component. To use them, identify the order in which year, month, and day appear in your dates, then arrange "y", "m", and "d" in the same order. That gives you the name of the lubridate function that will parse your date. For example:
 
 ```{r}
 ymd("2017-01-31")
@@ -310,7 +306,7 @@ Setting larger components of a date to a constant is a powerful technique that a
 1.  Compare `dep_time`, `sched_dep_time` and `dep_delay`. Are they consistent?
     Explain your findings.
 
-1.  Compare `airtime` with the duration between the departure and arrival.
+1.  Compare `air_time` with the duration between the departure and arrival.
     Explain your findings. (Hint: consider the location of the airport.)
     
 1.  How does the average delay time change over the course of a day?
@@ -417,7 +413,7 @@ You can add and multiply periods:
 days(50) + hours(25) + minutes(2)
 ```
 
-And of course, add them to dates. Compared to durations, periods are more likely do what you expect:
+And of course, add them to dates. Compared to durations, periods are more likely to do what you expect:
 
 ```{r}
 # A leap year
@@ -517,6 +513,8 @@ You can find out what R thinks your current time zone is with `Sys.timezone()`:
 Sys.timezone()
 ```
 
+(If R doesn't know, you'll get an `NA`.)
+
 And see the complete list of all time zone names with `OlsonNames()`:
 
 ```{r}
@@ -539,7 +537,7 @@ x1 - x2
 x1 - x3
 ```
 
-Unless other specified, lubridate always uses UTC. UTC (Coordinated Universal Time) is the standard time zone used by the scientific community and roughly equivalent to its predecessor GMT (Greenwich Meridian Time). It does not have DST, which makes a convenient representation for computation. Operations that combine date-times, like `c()`, will often drop the time zone. In that case, the date-times will display in your local time zone:
+Unless other specified, lubridate always uses UTC. UTC (Coordinated Universal Time) is the standard time zone used by the scientific community and roughly equivalent to its predecessor GMT (Greenwich Mean Time). It does not have DST, which makes a convenient representation for computation. Operations that combine date-times, like `c()`, will often drop the time zone. In that case, the date-times will display in your local time zone:
 
 ```{r}
 x4 <- c(x1, x2, x3)
