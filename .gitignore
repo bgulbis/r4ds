@@ -3,6 +3,7 @@
 *_cache
 *_files
 _main.rds
+_book
 *.md
 *.html
 search_index.json
