@@ -4,7 +4,6 @@
 *_files
 _main.rds
 *.md
-*.html
 search_index.json
 libs
 *.rds
